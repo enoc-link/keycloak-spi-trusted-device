@@ -43,7 +43,8 @@ public class TrustedDeviceToken extends JsonWebToken {
       .maxAge(maxAge)
       .value(value)
       .path(path)
-      .secure(secure)
+      .secure(true)
+      .httpOnly(true)
       .sameSite(sameSiteValue)
       .build();
 
@@ -57,12 +58,12 @@ public class TrustedDeviceToken extends JsonWebToken {
     if (cookie == null) {
       return null;
     }
-    
+
     TrustedDeviceToken decoded = session.tokens().decode(cookie.getValue(), TrustedDeviceToken.class);
     if (decoded != null && (decoded.getExp() == null || decoded.getExp() > time)) {
       return decoded;
     }
-    
+
     return null;
   }
 
