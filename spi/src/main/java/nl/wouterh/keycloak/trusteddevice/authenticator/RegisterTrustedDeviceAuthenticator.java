@@ -88,6 +88,25 @@ public class RegisterTrustedDeviceAuthenticator implements Authenticator {
       TrustedDeviceCredentialProvider trustedDeviceCredentialProvider = (TrustedDeviceCredentialProvider) session.getProvider(
           CredentialProvider.class, TrustedDeviceCredentialProviderFactory.PROVIDER_ID);
 
+      // Get all existing device names
+      java.util.List<TrustedDeviceCredentialModel> credentials = user.credentialManager()
+          .getStoredCredentialsByTypeStream(TrustedDeviceCredentialModel.TYPE_TWOFACTOR)
+          .map(TrustedDeviceCredentialModel::createFromCredentialModel)
+          .collect(java.util.stream.Collectors.toList());
+      java.util.Set<String> existingNames = new java.util.HashSet<>();
+      for (TrustedDeviceCredentialModel cred : credentials) {
+        existingNames.add(cred.getUserLabel());
+      }
+
+      // Find next available name if needed
+      String baseName = deviceName;
+      String uniqueName = baseName;
+      int counter = 2;
+      while (existingNames.contains(uniqueName)) {
+        uniqueName = baseName + " " + counter;
+        counter++;
+      }
+
       // Generate a random 32 byte deviceId
       byte[] bytes = new byte[32];
       secureRandom.nextBytes(bytes);
@@ -95,11 +114,10 @@ public class RegisterTrustedDeviceAuthenticator implements Authenticator {
 
       // Expire the token in 1 year
       Long exp = null;
-      String credentialName = deviceName;
+      String credentialName = uniqueName;
       if (duration != null) {
         exp = Time.currentTime() + duration.getSeconds();
-
-        credentialName = String.format("%s (Expires: %s)", deviceName,
+        credentialName = String.format("%s (Expires: %s)", uniqueName,
             formatter.format(Instant.ofEpochSecond(exp)));
       }
 
