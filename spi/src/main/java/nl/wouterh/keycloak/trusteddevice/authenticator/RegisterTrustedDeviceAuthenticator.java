@@ -2,7 +2,6 @@ package nl.wouterh.keycloak.trusteddevice.authenticator;
 
 import static nl.wouterh.keycloak.trusteddevice.authenticator.RegisterTrustedDeviceAuthenticatorFactory.CONF_DURATION;
 
-import com.google.common.base.Strings;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
@@ -73,7 +72,7 @@ public class RegisterTrustedDeviceAuthenticator implements Authenticator {
     AuthenticatorConfigModel authenticatorConfig = context.getAuthenticatorConfig();
     if (authenticatorConfig != null) {
       Map<String, String> config = authenticatorConfig.getConfig();
-      if (config != null && !Strings.isNullOrEmpty(config.get(CONF_DURATION))) {
+      if (config != null && !isNullOrEmpty(config.get(CONF_DURATION))) {
         duration = Duration.parse(config.get(CONF_DURATION));
       }
     }
@@ -84,7 +83,7 @@ public class RegisterTrustedDeviceAuthenticator implements Authenticator {
     boolean trustedDevice = "yes".equals(formParameters.getFirst("trusted-device"));
     String deviceName = formParameters.getFirst("trusted-device-name");
 
-    if (trustedDevice && !Strings.isNullOrEmpty(deviceName)) {
+    if (trustedDevice && !isNullOrEmpty(deviceName)) {
       TrustedDeviceCredentialProvider trustedDeviceCredentialProvider = (TrustedDeviceCredentialProvider) session.getProvider(
           CredentialProvider.class, TrustedDeviceCredentialProviderFactory.PROVIDER_ID);
 
@@ -157,5 +156,9 @@ public class RegisterTrustedDeviceAuthenticator implements Authenticator {
   @Override
   public void close() {
 
+  }
+
+  private static boolean isNullOrEmpty(String value) {
+    return value == null || value.isEmpty();
   }
 }
